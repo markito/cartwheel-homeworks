@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from agent.config import db_path
+from seed.ticket_assignments import assign_tickets
 
 
 def connect(path: Path | None = None) -> sqlite3.Connection:
@@ -259,12 +260,27 @@ def insert_escalation(
     context: str,
     created_at: str,
 ) -> int:
-    cursor = conn.execute(
-        "INSERT INTO escalations (user_id, store_id, order_id, summary, context, created_at) VALUES (?, ?, ?, ?, ?, ?)",
-        (user_id, store_id, order_id, summary, context, created_at),
+    with conn:
+        cursor = conn.execute(
+            "INSERT INTO escalations (user_id, store_id, order_id, summary, context, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (user_id, store_id, order_id, summary, context, created_at),
+        )
+        ticket_id = int(cursor.lastrowid)
+        assign_tickets(conn, [ticket_id])
+    return ticket_id
+
+
+def find_assigned_tickets(
+    conn: sqlite3.Connection, assignee_id: int, query: str
+) -> list[dict[str, Any]]:
+    rows = conn.execute(
+        """SELECT id AS ticket_id, summary, order_id, created_at
+           FROM escalations
+           WHERE assignee_id = ? AND instr(lower(summary), lower(?)) > 0
+           ORDER BY created_at DESC, id DESC LIMIT 5""",
+        (assignee_id, query),
     )
-    conn.commit()
-    return int(cursor.lastrowid)
+    return [dict(row) for row in rows]
 
 
 def get_meta(conn: sqlite3.Connection, key: str) -> str | None:

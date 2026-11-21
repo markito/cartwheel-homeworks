@@ -58,6 +58,12 @@ user 1) always come out the same. The seed also inserts six documented data
 quality defects for challenge scenarios. Their identifiers and expected
 handling are stored in the `data_quality_cases` table.
 
+The custom support tool `find_my_tickets` lists up to five tickets assigned to the
+authenticated staff member. If your database predates staff assignments, run
+`uv run python -m seed.ticket_assignments` once to upgrade it in place. Fresh
+seeds include assignments. Tickets are distributed across support users in ID
+order when seeded, upgraded, or opened.
+
 ## Homework 2 and tracing
 
 [Homework 2](homework/module-1/hw2.md) asks you to implement the authenticated endpoints and add application attributes to traces. The tracing setup is provided through OpenLLMetry and self-hosted Langfuse. The four HW2 functions listed below are intentionally unfinished; starting the server alone does not complete them.
