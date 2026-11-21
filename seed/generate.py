@@ -33,6 +33,7 @@ import yaml
 
 from seed.eligibility import effective_return_window_days, is_refund_eligible
 from seed.policies import render_platform_policies, render_store_policy
+from seed.ticket_assignments import add_ticket_assignments
 from seed.validate import validate_policies
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -557,6 +558,7 @@ def generate_world(
         _pin_demo_orders(conn, facts)
         _seed_data_quality_cases(conn)
         _seed_escalations(conn, rng)
+        add_ticket_assignments(conn)
         for key, value in [
             ("platform_name", facts["platform_name"]),
             ("world_asof", WORLD_ASOF.isoformat()),

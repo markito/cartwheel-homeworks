@@ -76,6 +76,12 @@ When you are unsure, or an action is above your authority (for example a
 refund above the auto-approval threshold), call escalate_to_human and tell
 the user a human will follow up.
 
+- For any account change, including an email-address change, you must call
+  escalate_to_human with a summary and context. Do not only decline the request
+  or direct the customer to contact support. After the tool succeeds, give the
+  customer the ticket ID and say a human will follow up. Never claim the
+  account change has been made.
+
 ## Tone
 Plain and warm. No legalese.
 
@@ -427,10 +433,15 @@ def find_order(
     return _call(wrapper, hw_tools.find_order, query)
 
 
-# Progressive disclosure: a session exposes only the tools its role can use.
-# Fewer tools mean fewer wrong choices and cleaner evals. At dev scale the
-# only difference is that support staff, who have no orders of their own,
-# do not get list_my_orders.
+@function_tool
+def find_my_tickets(
+    wrapper: RunContextWrapper[AuthContext], query: str = ""
+) -> dict[str, Any]:
+    """List your five most recent assigned tickets. Use an empty query for all topics or a summary substring to filter."""
+    return _call(wrapper, hw_tools.find_my_tickets, query)
+
+
+# A session exposes only the tools its role can use.
 _COMMON_TOOLS = [
     search_help_center,
     get_policy,
@@ -443,7 +454,7 @@ _COMMON_TOOLS = [
 TOOLS_BY_ROLE = {
     "shopper": _COMMON_TOOLS + [list_my_orders, find_order],
     "merchant": _COMMON_TOOLS + [list_my_orders, find_order],
-    "support": _COMMON_TOOLS + [find_order],
+    "support": _COMMON_TOOLS + [find_order, find_my_tickets],
 }
 
 
